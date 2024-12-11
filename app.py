@@ -5,6 +5,7 @@ import faicons
 ordenes = pl.read_parquet('data/ordenes.parquet')
 
 choices_anno = ordenes['in_orden_anno'].unique().sort().to_list()
+choices_entidad = ordenes['entidad_nombre'].unique().sort().to_list()
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -16,7 +17,7 @@ app_ui = ui.page_sidebar(
         ui.input_select(
             id="entidad",
             label="Entidad",
-            choices=[]
+            choices=choices_entidad
         )
     ),
     ui.layout_columns(
@@ -47,30 +48,23 @@ app_ui = ui.page_sidebar(
 
 def server(input, output, session):
     @reactive.calc
-    def data_filtered_year():
-        return ordenes.filter(pl.col("in_orden_anno") == input.year())
-    
-    @reactive.calc
-    def data_filtered_entidad():
-        return data_filtered_year().filter(pl.col("entidad_nombre") == input.entidad())
-
-
-    @reactive.effect
-    def observe_year():
-        choices = data_filtered_year()["entidad_nombre"].unique().sort().to_list()
-        ui.update_select("entidad", choices=choices)
+    def data_filtered():
+        return ordenes.filter(
+            pl.col("in_orden_anno") == input.year(),
+            pl.col("entidad_nombre") == input.entidad()
+        )
 
     @render.data_frame
     def table():
-        return data_filtered_entidad()
+        return data_filtered()
     
     @render.text
     def total_ordenes():
-        return data_filtered_entidad().shape[0]
+        return data_filtered().shape[0]
     
     @render.text
     def total_gasto():
-        suma = data_filtered_entidad()["dc_orden_monto"].cast(pl.Float64).sum()
+        suma = data_filtered()["dc_orden_monto"].cast(pl.Float64).sum()
         return f"S/. {suma:,.2f}".replace(",", " ")
 
 app = App(app_ui, server)
