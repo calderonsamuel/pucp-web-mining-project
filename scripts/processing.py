@@ -12,12 +12,14 @@ ordenes = pl.concat([ordenes_2024, ordenes_2023, ordenes_2022, ordenes_2021])
 
 # Select and rename columns
 ordenes_selected = ordenes.select(
+    pl.col("pk_id_orden").alias("ID"),
+    pl.col("fk_id_orden_tipo").alias("Tipo"),
+    pl.col("vc_orden_numero").alias("Numero"),
     pl.col("in_orden_anno").alias("Anno"),
     pl.col("in_orden_mes").alias("Mes"),
     pl.col("entidad_nombre").alias("Entidad"),
     pl.col("vc_orden_descripcion").alias("Descripcion"),
-    pl.col("vc_orden_numero").alias("Numero"),
-    pl.col("dc_orden_monto").alias("Monto")
+    pl.col("dc_orden_monto").alias("Monto"),
 )
 
 ordenes_selected.write_parquet('data/ordenes.parquet')
@@ -27,5 +29,5 @@ ordenes_selected_pd = ordenes_selected.to_pandas()
 
 # Write to DuckDB file
 con = duckdb.connect('data/ordenes.duckdb')
-con.execute("CREATE TABLE ordenes AS SELECT * FROM ordenes_selected_pd")
+con.execute("CREATE OR REPLACE TABLE ordenes AS SELECT * FROM ordenes_selected_pd")
 con.close()
