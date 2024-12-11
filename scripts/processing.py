@@ -12,11 +12,11 @@ ordenes = pl.concat([ordenes_2024, ordenes_2023, ordenes_2022, ordenes_2021])
 ordenes.shape
 
 ordenes.select(
-    pl.col("in_orden_anno"),
-    pl.col("in_orden_mes"),
-    pl.col("entidad_nombre"),
-    pl.col("dc_orden_monto"),
-    pl.col("vc_orden_descripcion"),
+    pl.col("in_orden_anno").alias("Año"),
+    pl.col("in_orden_mes").alias("Mes"),
+    pl.col("entidad_nombre").alias("Entidad"),
+    pl.col("dc_orden_monto").alias("Monto"),
+    pl.col("vc_orden_descripcion").alias("Descripción del servicio"),
 ).write_parquet('data/ordenes.parquet')
 
 ordenes.unique("entidad_nombre").drop_in_place("entidad_nombre").sort().to_list()
