@@ -1,4 +1,5 @@
 import polars as pl
+import duckdb
 
 ordenes_2024 = pl.read_csv('data/4_ordenes_de_servicio.txt', separator='\t', infer_schema=False).filter(
     pl.col("in_orden_anno") == "2024"
@@ -9,14 +10,19 @@ ordenes_2021 = pl.read_csv('data/4_ordenes_de_servicio_2021.txt', separator='\t'
 
 ordenes = pl.concat([ordenes_2024, ordenes_2023, ordenes_2022, ordenes_2021])
 
-ordenes.shape
-
-ordenes.select(
+# Select and rename columns
+ordenes_selected = ordenes.select(
     pl.col("in_orden_anno").alias("Anno"),
     pl.col("in_orden_mes").alias("Mes"),
     pl.col("entidad_nombre").alias("Entidad"),
     pl.col("dc_orden_monto").alias("Monto"),
     pl.col("vc_orden_descripcion").alias("Descripcion")
-).write_parquet('data/ordenes.parquet')
+)
 
-ordenes.unique("Entidad").drop_in_place("entidad_nombre").sort().to_list()
+# Convert Polars DataFrame to Pandas DataFrame
+ordenes_selected_pd = ordenes_selected.to_pandas()
+
+# Write to DuckDB file
+con = duckdb.connect('data/ordenes.duckdb')
+con.execute("CREATE TABLE ordenes AS SELECT * FROM ordenes_selected_pd")
+con.close()
