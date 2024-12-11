@@ -15,6 +15,12 @@ click==8.1.7 ; platform_system != 'Emscripten' \
 colorama==0.4.6 ; platform_system == 'Windows' \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
+faicons==0.2.2 \
+    --hash=sha256:6b7d7b19180179b6b83783f91bf6c9311c0f00ae0f97d41be1d24d9942361659 \
+    --hash=sha256:d45d7c2635b53582a3375c67d7e975a28a91d2c16ef5f6b5033b5cdd507224b6
+fontawesome==5.10.1.post1 \
+    --hash=sha256:1b5e8f2ed12a74b88aef6f404ff770af425324041bc5620523a802d5406595b8 \
+    --hash=sha256:642d74da5f4726bb2c8f035a2f4a98fdc4294d213a291994ee0b3d845166f9e8
 h11==0.14.0 ; platform_system != 'Emscripten' \
     --hash=sha256:8f19fbbe99e72420ff35c00b27a34cb9937e902a8b810e2c88300c6f0a3b699d \
     --hash=sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761

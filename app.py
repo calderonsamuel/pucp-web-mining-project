@@ -1,5 +1,6 @@
 from shiny import App, reactive, render, ui
 import polars as pl
+import faicons
 
 ordenes = pl.read_parquet('data/ordenes.parquet')
 
@@ -21,11 +22,13 @@ app_ui = ui.page_sidebar(
     ui.layout_columns(
         ui.value_box(
             title="Órdenes de servicio",
-            value = ui.output_text("total_ordenes")
+            value = ui.output_text("total_ordenes"),
+            showcase=faicons.icon_svg("file-invoice-dollar")
         ),
         ui.value_box(
             title="Gasto total",
-            value = ui.output_text("total_gasto")
+            value = ui.output_text("total_gasto"),
+            showcase=faicons.icon_svg("coins")
         ),
         ui.value_box(
             title="Gasto total",

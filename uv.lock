@@ -59,6 +59,27 @@ wheels = [
 ]
 
 [[package]]
+name = "faicons"
+version = "0.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "htmltools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/06/e8/c12ef85c4444616ab1c1e96d5ecbadc8046d40b34797308846a2cfc06c80/faicons-0.2.2.tar.gz", hash = "sha256:6b7d7b19180179b6b83783f91bf6c9311c0f00ae0f97d41be1d24d9942361659", size = 604434 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/3c/1db1b0f878319bb227f35a0fca7cad64e1f528b518bcab1a708da305c86d/faicons-0.2.2-py3-none-any.whl", hash = "sha256:d45d7c2635b53582a3375c67d7e975a28a91d2c16ef5f6b5033b5cdd507224b6", size = 607225 },
+]
+
+[[package]]
+name = "fontawesome"
+version = "5.10.1.post1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/5c/7bd784c3f6dc8dc148a6a6ad3e7d4bf0e3c5a53f9565cc0385d7f3dcee29/fontawesome-5.10.1.post1.tar.gz", hash = "sha256:1b5e8f2ed12a74b88aef6f404ff770af425324041bc5620523a802d5406595b8", size = 20372 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b9/fa/84705d3713db9a528ab489cc8e213cafb6425407a437a1a7a6148d6bf98f/fontawesome-5.10.1.post1-py3-none-any.whl", hash = "sha256:642d74da5f4726bb2c8f035a2f4a98fdc4294d213a291994ee0b3d845166f9e8", size = 20214 },
+]
+
+[[package]]
 name = "h11"
 version = "0.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -212,12 +233,16 @@ name = "pucp-web-mining-project"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "faicons" },
+    { name = "fontawesome" },
     { name = "polars" },
     { name = "shiny" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "faicons", specifier = ">=0.2.2" },
+    { name = "fontawesome", specifier = ">=5.10.1.post1" },
     { name = "polars", specifier = ">=1.17.1" },
     { name = "shiny", specifier = ">=1.2.1" },
 ]
