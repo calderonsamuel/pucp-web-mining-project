@@ -37,8 +37,8 @@ app_ui = ui.page_sidebar(
             showcase=faicons.icon_svg("coins")
         ),
         ui.value_box(
-            title="Gasto total",
-            value = 1000
+            title="Otros",
+            value = ui.output_text("otros")
         )            
     ),
     ui.layout_columns(
@@ -70,7 +70,7 @@ def server(input, output, session):
 
     @render.data_frame
     def table():
-        return data_filtered()
+        return render.DataGrid(data_filtered(), selection_mode="row")
     
     @render.text
     def total_ordenes():
@@ -80,5 +80,18 @@ def server(input, output, session):
     def total_gasto():
         suma = data_filtered()["Monto"].cast(pl.Float64).sum()
         return f"S/. {suma:,.2f}".replace(",", " ")
+    
+    @render.text
+    def otros():
+        selection = input.table_cell_selection()["rows"]
+
+        if len(selection) == 0:
+            return "Seleccione una fila"
+        
+        index = selection[0]
+
+        print(data_filtered().slice(index, 1))
+        
+        return index
 
 app = App(app_ui, server)
