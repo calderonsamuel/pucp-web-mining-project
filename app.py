@@ -63,7 +63,7 @@ def server(input, output, session):
             return filtered_basic
         
         filtered_basic = filtered_basic.filter(
-            pl.col("Descripcion").str.contains(input.busqueda(), literal=False)
+            pl.col("Descripcion").str.contains("(?i)" + input.busqueda(), literal=False)
         )
 
         return filtered_basic
