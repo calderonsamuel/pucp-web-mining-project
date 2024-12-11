@@ -35,12 +35,12 @@ app_ui = ui.page_sidebar(
     ),
     ui.layout_columns(
         ui.value_box(
-            title="Órdenes de servicio",
+            title="Número de Órdenes",
             value = ui.output_text("total_ordenes"),
             showcase=faicons.icon_svg("file-invoice-dollar")
         ),
         ui.value_box(
-            title="Gasto total",
+            title="Gasto anual",
             value = ui.output_text("total_gasto"),
             showcase=faicons.icon_svg("coins")
         ),
@@ -78,6 +78,17 @@ def server(input, output, session):
         )
 
         return filtered_basic
+    
+    @reactive.calc
+    def selected_orden_id():
+        selection = input.table_cell_selection()["rows"]
+
+        if len(selection) == 0:
+            return ""
+        
+        index = selection[0]
+
+        return data_filtered().slice(index, 1).drop_in_place("ID")[0] 
 
     @render.data_frame
     def table():
@@ -89,18 +100,11 @@ def server(input, output, session):
     
     @render.text
     def total_gasto():
-        suma = data_filtered()["Monto"].cast(pl.Float64).sum()
+        suma = data_filtered()["Monto"].sum()
         return f"S/. {suma:,.2f}".replace(",", " ")
     
     @render.text
     def otros():
-        selection = input.table_cell_selection()["rows"]
-
-        if len(selection) == 0:
-            return "Seleccione una fila"
-        
-        index = selection[0]
-
-        return data_filtered().slice(index, 1).drop_in_place("ID")[0]
+        return selected_orden_id()
 
 app = App(app_ui, server)

@@ -21,7 +21,7 @@ ordenes_selected = ordenes.with_columns(
     pl.col("in_orden_mes").alias("Mes"),
     pl.col("entidad_nombre").alias("Entidad"),
     pl.col("vc_orden_descripcion").alias("Descripcion"),
-    pl.col("dc_orden_monto").alias("Monto"),
+    pl.col("dc_orden_monto").cast(pl.Float64).alias("Monto"),
 )
 
 ordenes_selected.write_parquet('data/ordenes.parquet')
