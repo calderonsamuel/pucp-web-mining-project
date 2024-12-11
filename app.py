@@ -4,8 +4,8 @@ import faicons
 
 ordenes = pl.read_parquet('data/ordenes.parquet')
 
-choices_anno = ordenes['in_orden_anno'].unique().sort().to_list()
-choices_entidad = ordenes['entidad_nombre'].unique().sort().to_list()
+choices_anno = ordenes['Anno'].unique().sort().to_list()
+choices_entidad = ordenes['Entidad'].unique().sort().to_list()
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -18,6 +18,11 @@ app_ui = ui.page_sidebar(
             id="entidad",
             label="Entidad",
             choices=choices_entidad
+        ),
+        ui.input_text(
+            id="busqueda",
+            label="Búsqueda",
+            placeholder="Buscar por descripción..."
         )
     ),
     ui.layout_columns(
@@ -49,10 +54,19 @@ app_ui = ui.page_sidebar(
 def server(input, output, session):
     @reactive.calc
     def data_filtered():
-        return ordenes.filter(
-            pl.col("in_orden_anno") == input.year(),
-            pl.col("entidad_nombre") == input.entidad()
+        filtered_basic = ordenes.filter(
+            pl.col("Anno") == input.year(),
+            pl.col("Entidad") == input.entidad()
         )
+
+        if (input.busqueda() == ""):
+            return filtered_basic
+        
+        filtered_basic = filtered_basic.filter(
+            pl.col("Descripcion").str.contains(input.busqueda(), literal=False)
+        )
+
+        return filtered_basic
 
     @render.data_frame
     def table():
@@ -64,7 +78,7 @@ def server(input, output, session):
     
     @render.text
     def total_gasto():
-        suma = data_filtered()["dc_orden_monto"].cast(pl.Float64).sum()
+        suma = data_filtered()["Monto"].cast(pl.Float64).sum()
         return f"S/. {suma:,.2f}".replace(",", " ")
 
 app = App(app_ui, server)
