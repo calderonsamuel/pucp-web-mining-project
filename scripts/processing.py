@@ -11,9 +11,11 @@ ordenes_2021 = pl.read_csv('data/4_ordenes_de_servicio_2021.txt', separator='\t'
 ordenes = pl.concat([ordenes_2024, ordenes_2023, ordenes_2022, ordenes_2021])
 
 # Select and rename columns
-ordenes_selected = ordenes.select(
+ordenes_selected = ordenes.with_columns(
+        pl.when(pl.col("fk_id_orden_tipo") == "1").then(pl.lit("Compra")).otherwise(pl.lit("Servicio")).alias("Tipo"),
+    ).select(
     pl.col("pk_id_orden").alias("ID"),
-    pl.col("fk_id_orden_tipo").alias("Tipo"),
+    pl.col("Tipo"),
     pl.col("vc_orden_numero").alias("Numero"),
     pl.col("in_orden_anno").alias("Anno"),
     pl.col("in_orden_mes").alias("Mes"),

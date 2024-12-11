@@ -6,6 +6,7 @@ ordenes = pl.read_parquet('data/ordenes.parquet')
 
 choices_anno = ordenes['Anno'].unique().sort().to_list()
 choices_entidad = ordenes['Entidad'].unique().sort().to_list()
+choices_tipo = ordenes['Tipo'].unique().sort().to_list()
 
 app_ui = ui.page_sidebar(
     ui.sidebar(
@@ -18,6 +19,13 @@ app_ui = ui.page_sidebar(
             id="entidad",
             label="Entidad",
             choices=choices_entidad
+        ),
+        ui.input_selectize(
+            id="tipo",
+            label="Tipo",
+            choices=choices_tipo,
+            multiple=True,
+            selected=choices_tipo
         ),
         ui.input_text(
             id="busqueda",
@@ -56,7 +64,10 @@ def server(input, output, session):
     def data_filtered():
         filtered_basic = ordenes.filter(
             pl.col("Anno") == input.year(),
-            pl.col("Entidad") == input.entidad()
+            pl.col("Entidad") == input.entidad(),
+            pl.col("Tipo").is_in(input.tipo())
+        ).drop(
+            ["Anno", "Entidad"]
         )
 
         if (input.busqueda() == ""):
@@ -90,8 +101,6 @@ def server(input, output, session):
         
         index = selection[0]
 
-        print(data_filtered().slice(index, 1))
-        
-        return index
+        return data_filtered().slice(index, 1).drop_in_place("ID")[0]
 
 app = App(app_ui, server)
