@@ -15,9 +15,12 @@ ordenes_selected = ordenes.select(
     pl.col("in_orden_anno").alias("Anno"),
     pl.col("in_orden_mes").alias("Mes"),
     pl.col("entidad_nombre").alias("Entidad"),
-    pl.col("dc_orden_monto").alias("Monto"),
-    pl.col("vc_orden_descripcion").alias("Descripcion")
+    pl.col("vc_orden_descripcion").alias("Descripcion"),
+    pl.col("vc_orden_numero").alias("Numero"),
+    pl.col("dc_orden_monto").alias("Monto")
 )
+
+ordenes_selected.write_parquet('data/ordenes.parquet')
 
 # Convert Polars DataFrame to Pandas DataFrame
 ordenes_selected_pd = ordenes_selected.to_pandas()
