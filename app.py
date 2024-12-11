@@ -20,12 +20,12 @@ app_ui = ui.page_sidebar(
     ),
     ui.layout_columns(
         ui.value_box(
-            title="Total de ordenes",
-            value = 1000
+            title="Órdenes de servicio",
+            value = ui.output_text("total_ordenes")
         ),
         ui.value_box(
             title="Gasto total",
-            value = 1000
+            value = ui.output_text("total_gasto")
         ),
         ui.value_box(
             title="Gasto total",
@@ -61,5 +61,13 @@ def server(input, output, session):
     def table():
         return data_filtered_entidad()
     
+    @render.text
+    def total_ordenes():
+        return data_filtered_entidad().shape[0]
+    
+    @render.text
+    def total_gasto():
+        suma = data_filtered_entidad()["dc_orden_monto"].cast(pl.Float64).sum()
+        return f"S/. {suma:,.2f}".replace(",", " ")
 
 app = App(app_ui, server)
