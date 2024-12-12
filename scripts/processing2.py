@@ -40,3 +40,17 @@ ordenes_full = ordenes.rename({
 ordenes_base.write_parquet('data/ordenes.parquet')
 ordenes_lda.write_parquet('data/ordenes_lda.parquet')
 ordenes_full.write_parquet('data/ordenes_full.parquet')
+
+ordenes_full.group_by(
+    pl.col("rubro_asignado"),
+    pl.col("palabras_clave")
+).count().with_columns(
+    pl.col("palabras_clave").str.split(", ").alias("palabras_clave")
+).explode("palabras_clave")
+
+keywords = ordenes_full.unique(["rubro_asignado", "palabras_clave"]).select(
+    pl.col("rubro_asignado"),
+    pl.col("palabras_clave")
+)
+
+keywords.write_json('data/keywords.json')

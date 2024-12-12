@@ -2,7 +2,11 @@ from shiny import App, reactive, render, ui
 import polars as pl
 import faicons
 
-ordenes = pl.read_parquet('data/ordenes.parquet')
+# ordenes = pl.read_parquet('data/ordenes.parquet')
+ordenes = pl.read_parquet('data/ordenes_full.parquet')
+ordenes_lda = pl.read_parquet('data/ordenes_lda.parquet')
+nombre_rubros = pl.read_csv('data/nombre_rubros.csv')
+
 
 choices_anno = ordenes['Anno'].unique().sort().to_list()
 choices_entidad = ordenes['Entidad'].unique().sort().to_list()
@@ -62,7 +66,9 @@ app_ui = ui.page_sidebar(
         max_height="50%"
     ),
     ui.card(
-        ui.output_text("otros")
+        ui.output_text("otros"),
+        ui.output_text("nombre_rubro"),
+        ui.output_data_frame("table_lda")
     ),
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
@@ -75,8 +81,6 @@ def server(input, output, session):
             pl.col("Anno") == int(input.year()),
             pl.col("Entidad") == input.entidad(),
             pl.col("Tipo").is_in(input.tipo())
-        ).drop(
-            ["Anno", "Entidad"]
         )
 
         if (input.busqueda() == ""):
@@ -98,10 +102,29 @@ def server(input, output, session):
         index = selection[0]
 
         return data_filtered().slice(index, 1).drop_in_place("ID")[0] 
+    
+    @reactive.calc
+    def selected_lda():
+        if selected_orden_id() == "":
+            return None
+        
+        data_subset = ordenes.filter(
+            pl.col("ID") == selected_orden_id()
+        ).drop(["ID", "Anno", "Entidad", "Tipo", "Numero", "Mes", "Descripcion", "Monto"])
+        
+        return data_subset
 
     @render.data_frame
     def table():
-        return render.DataGrid(data_filtered(), selection_mode="row")
+        data_to_render = data_filtered().select(
+            pl.col("ID"),
+            pl.col("Tipo"),
+            pl.col("Numero"),
+            pl.col("Mes"),
+            pl.col("Descripcion"),
+            pl.col("Monto")
+        )
+        return render.DataGrid(data_to_render, selection_mode="row")
     
     @render.text
     def total_ordenes():
@@ -116,7 +139,23 @@ def server(input, output, session):
     def otros():
         if selected_orden_id() == "":
             return "Selecciona una orden para ver detalles"
-        return "Detalles aquí"
+        return None
+    
+    @render.text
+    def nombre_rubro():
+        if selected_lda() is None:
+            return None
+        
+        joined = selected_lda().join(nombre_rubros, on="rubro_asignado")
+        id_rubro = joined.drop_in_place("rubro_asignado").to_list()[0]
+        nombre = joined.drop_in_place("nombre").to_list()[0]
+        return f"Rubro: {id_rubro} - {nombre}"
+    
+    @render.data_frame
+    def table_lda():
+        if selected_lda() is None:
+            return None
+        return render.DataGrid(selected_lda())
     
     @reactive.effect
     @reactive.event(input.reset_busqueda)
