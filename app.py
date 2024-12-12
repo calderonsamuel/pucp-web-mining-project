@@ -31,8 +31,47 @@ choices_anno = ordenes['Anno'].unique().sort().to_list()
 choices_entidad = ordenes['Entidad'].unique().sort().to_list()
 choices_tipo = ordenes['Tipo'].unique().sort().to_list()
 
-app_ui = ui.page_sidebar(
-    ui.sidebar(
+app_ui = ui.page_navbar(
+    ui.nav_panel(
+        "Home",
+        ui.card(
+            ui.layout_columns(
+                ui.layout_columns(
+                    ui.value_box(
+                        title="Número de Órdenes",
+                        value = ui.output_text("total_ordenes"),
+                        showcase=faicons.icon_svg("file-invoice-dollar")
+                    ),
+                    ui.value_box(
+                        title="Gasto anual",
+                        value = ui.output_text("total_gasto"),
+                        showcase=faicons.icon_svg("coins")
+                    ),
+                    col_widths=12
+                ),
+                ui.output_data_frame("table"),
+                col_widths={
+                    "sm": [5, 7],
+                    "lg": [4, 8]
+                }
+            ),
+            max_height="50%"
+        ),
+        ui.layout_columns(
+            ui.card(
+                sw.output_widget("plot_monto_por_rubro"),
+                full_screen=True
+            ),
+            ui.card(
+                sw.output_widget("plot_dispersion_por_rubro"),
+                full_screen=True
+            ),
+            col_widths=[6, 6]
+        ),
+        value="home"
+    ),
+    
+    sidebar=ui.sidebar(
         ui.input_select(
             id="year",
             label="Año",
@@ -61,53 +100,6 @@ app_ui = ui.page_sidebar(
             icon=faicons.icon_svg("broom")
         )
     ),
-    ui.card(
-        ui.layout_columns(
-            ui.layout_columns(
-                ui.value_box(
-                    title="Número de Órdenes",
-                    value = ui.output_text("total_ordenes"),
-                    showcase=faicons.icon_svg("file-invoice-dollar")
-                ),
-                ui.value_box(
-                    title="Gasto anual",
-                    value = ui.output_text("total_gasto"),
-                    showcase=faicons.icon_svg("coins")
-                ),
-                col_widths=12
-            ),
-            ui.output_data_frame("table"),
-            col_widths={
-                "sm": [5, 7],
-                "lg": [4, 8]
-            }
-        ),
-        max_height="50%"
-    ),
-    ui.layout_columns(
-        ui.card(
-            sw.output_widget("plot_monto_por_rubro"),
-            full_screen=True
-        ),
-        ui.card(
-            sw.output_widget("plot_dispersion_por_rubro"),
-            full_screen=True
-        ),
-        col_widths=[6, 6]
-    ),
-    # ui.card(
-    #     ui.layout_columns(
-    #         ui.value_box(
-    #             title = ui.output_text("nombre_rubro"),
-    #             value = ui.output_text("palabras_clave")
-    #         ),
-    #         ui.output_data_frame("table_lda"),
-    #         col_widths={
-    #             "sm": [5, 7],
-    #             "lg": [4, 8]
-    #         }
-    #     )
-    # ),
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
 )
