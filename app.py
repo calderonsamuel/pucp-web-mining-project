@@ -1,7 +1,9 @@
 from shiny import App, reactive, render, ui
+import shinywidgets as sw
 import polars as pl
 import numpy as np
 import faicons
+import plotly.express as px
 
 def euclidean_distance(arr1, arr2):
         return np.sqrt(np.sum((np.array(arr1) - np.array(arr2)) ** 2))
@@ -82,19 +84,24 @@ app_ui = ui.page_sidebar(
         ),
         max_height="50%"
     ),
-    ui.card(
-        ui.layout_columns(
-            ui.value_box(
-                title = ui.output_text("nombre_rubro"),
-                value = ui.output_text("palabras_clave")
-            ),
-            ui.output_data_frame("table_lda"),
-            col_widths={
-                "sm": [5, 7],
-                "lg": [4, 8]
-            }
-        )
+    ui.layout_columns(
+        sw.output_widget("plot_monto_por_rubro"),
+        sw.output_widget("plot_dispersion_por_rubro"),
+        col_widths=[6, 6]
     ),
+    # ui.card(
+    #     ui.layout_columns(
+    #         ui.value_box(
+    #             title = ui.output_text("nombre_rubro"),
+    #             value = ui.output_text("palabras_clave")
+    #         ),
+    #         ui.output_data_frame("table_lda"),
+    #         col_widths={
+    #             "sm": [5, 7],
+    #             "lg": [4, 8]
+    #         }
+    #     )
+    # ),
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
 )
@@ -205,6 +212,59 @@ def server(input, output, session):
         palabras = selected_lda().drop_in_place("palabras_clave").to_list()[0]
         return palabras
     
+    @sw.render_widget
+    def plot_monto_por_rubro():        
+        data_sum = data_filtered().select(
+            pl.col("rubro_asignado"),
+            pl.col("Monto")
+        ).group_by("rubro_asignado").sum().sort("rubro_asignado")
+
+        fig = px.bar(
+            data_sum, 
+            x='rubro_asignado', 
+            y='Monto', 
+            text_auto=True, 
+            title="Monto por Rubro",
+            labels={
+                "rubro_asignado": "Rubro",
+                "Monto": "Monto (S/.)"
+            }
+        )
+        fig.update_traces(
+            texttemplate="%{value:.2s}"
+        )
+        
+        return fig
+    
+    @sw.render_widget
+    def plot_dispersion_por_rubro():
+        data = data_filtered().select(
+            pl.col("rubro_asignado"),
+            pl.col("Monto")
+        )
+
+        fig = px.box(
+            data, 
+            x='rubro_asignado', 
+            y='Monto', 
+            color='rubro_asignado',
+            # box=True, 
+            title="Dispersión de Monto por Rubro",
+            labels={
+                "rubro_asignado": "Rubro",
+                "Monto": "Monto (S/.) - log scale"
+            }
+        )
+
+        # Update the layout to set the y-axis to a logarithmic scale
+        fig.update_layout(
+            yaxis_type='log',  # Set y-axis to logarithmic scale
+            showlegend=False   # Remove the legend
+        )
+
+
+        return fig
+    
     @render.data_frame
     def table_lda():
         if most_similar_orders() is None:
@@ -220,11 +280,11 @@ def server(input, output, session):
         )
         return None
     
-    @reactive.effect
-    @reactive.event(selected_vector_probs)
-    def event_selected_vector_probs():
-        print(selected_vector_probs())
-        print(most_similar_orders())
-        return None
+    # @reactive.effect
+    # @reactive.event(selected_vector_probs)
+    # def event_selected_vector_probs():
+    #     print(selected_vector_probs())
+    #     print(most_similar_orders())
+    #     return None
 
 app = App(app_ui, server)
