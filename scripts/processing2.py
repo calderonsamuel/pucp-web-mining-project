@@ -1,4 +1,5 @@
 import polars as pl
+import numpy as np
 
 ordenes = pl.read_parquet('data/ordenes_servicio_lda_final_v4.parquet')
 
@@ -54,3 +55,42 @@ keywords = ordenes_full.unique(["rubro_asignado", "palabras_clave"]).select(
 )
 
 keywords.write_json('data/keywords.json')
+
+# logic to  get the most similar orders
+
+ordenes_sample = ordenes.sample(100)
+vector = pl.Series(
+    'vector',
+    [0.03333546221256256, 0.03333546221256256, 0.03333546221256256, 0.03333546221256256, 0.03334055468440056, 0.03333546221256256, 0.033355146646499634, 0.03333546221256256, 0.6999560594558716, 0.03333546221256256]
+)
+
+def euclidean_distance(arr1, arr2):
+        return np.sqrt(np.sum((np.array(arr1) - np.array(arr2)) ** 2))
+
+# def compute_distance(v1: pl.Series, v2: pl.Series) -> pl.Series:
+#     # Apply the function element-wise to the Series
+#     return pl.Series([euclidean_distance(a, b) for a, b in zip(v1, v2)])
+
+def compute_distance(v1: pl.Series, v2: pl.Series) -> pl.Series:
+    # Ensure v2 is of length 1 and extend it to match v1's length
+    v2_extended = [v2[0]] * len(v1)
+    
+    # Compute distances
+    distances = [euclidean_distance(a, b) for a, b in zip(v1, v2_extended)]
+    
+    return pl.Series('distances', distances)
+
+v1 = pl.Series('v1', [[0, 0]])
+v2 = pl.Series('v2', [[0, 2]])
+
+compute_distance(v1, v2).to_list() # [2.0]
+
+v1 = pl.Series('v1', [[0, 0], [0, 0]])
+v2 = pl.Series('v2', [[0, 2]])
+
+compute_distance(v1, v2).to_list() # [2.0, 2.0]
+
+# this works
+ordenes_sample.with_columns(
+    compute_distance(ordenes_sample["vector_probabilidades"], vector).alias("distancia")
+).select(pl.col("distancia"))

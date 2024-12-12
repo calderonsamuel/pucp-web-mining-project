@@ -1,6 +1,23 @@
 from shiny import App, reactive, render, ui
 import polars as pl
+import numpy as np
 import faicons
+
+def euclidean_distance(arr1, arr2):
+        return np.sqrt(np.sum((np.array(arr1) - np.array(arr2)) ** 2))
+
+# def compute_distance(v1: pl.Series, v2: pl.Series) -> pl.Series:
+#     # Apply the function element-wise to the Series
+#     return pl.Series([euclidean_distance(a, b) for a, b in zip(v1, v2)])
+
+def compute_distance(v1: pl.Series, v2: pl.Series) -> pl.Series:
+    # Ensure v2 is of length 1 and extend it to match v1's length
+    v2_extended = [v2[0]] * len(v1)
+    
+    # Compute distances
+    distances = [euclidean_distance(a, b) for a, b in zip(v1, v2_extended)]
+    
+    return pl.Series('distances', distances)
 
 # ordenes = pl.read_parquet('data/ordenes.parquet')
 ordenes = pl.read_parquet('data/ordenes_full.parquet')
@@ -66,9 +83,17 @@ app_ui = ui.page_sidebar(
         max_height="50%"
     ),
     ui.card(
-        ui.output_text("otros"),
-        ui.output_text("nombre_rubro"),
-        ui.output_data_frame("table_lda")
+        ui.layout_columns(
+            ui.value_box(
+                title="Rubro asignado",
+                value = ui.output_text("nombre_rubro")
+            ),
+            ui.output_data_frame("table_lda"),
+            col_widths={
+                "sm": [5, 7],
+                "lg": [4, 8]
+            }
+        )
     ),
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
@@ -113,6 +138,25 @@ def server(input, output, session):
         ).drop(["ID", "Anno", "Entidad", "Tipo", "Numero", "Mes", "Descripcion", "Monto"])
         
         return data_subset
+    
+    @reactive.calc
+    def selected_vector_probs():
+        if selected_lda() is None:
+            return None
+        
+        vector = selected_lda().drop_in_place("vector_probabilidades")
+        return vector
+    
+    @reactive.calc
+    def most_similar_orders():
+        if selected_vector_probs() is None:
+            return None
+        
+        table = data_filtered().with_columns(
+            compute_distance(data_filtered()["vector_probabilidades"], selected_vector_probs()).alias("distancia")
+        ).sort("distancia")
+        
+        return table
 
     @render.data_frame
     def table():
@@ -149,7 +193,7 @@ def server(input, output, session):
         joined = selected_lda().join(nombre_rubros, on="rubro_asignado")
         id_rubro = joined.drop_in_place("rubro_asignado").to_list()[0]
         nombre = joined.drop_in_place("nombre").to_list()[0]
-        return f"Rubro: {id_rubro} - {nombre}"
+        return f"{id_rubro} - {nombre}"
     
     @render.data_frame
     def table_lda():
@@ -164,6 +208,13 @@ def server(input, output, session):
             id="busqueda",
             value=""
         )
+        return None
+    
+    @reactive.effect
+    @reactive.event(selected_vector_probs)
+    def event_selected_vector_probs():
+        print(selected_vector_probs())
+        print(most_similar_orders())
         return None
 
 app = App(app_ui, server)
