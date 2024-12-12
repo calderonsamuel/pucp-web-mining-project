@@ -33,28 +33,35 @@ app_ui = ui.page_sidebar(
             placeholder="Buscar por descripción..."
         )
     ),
-    ui.layout_columns(
-        ui.value_box(
-            title="Número de Órdenes",
-            value = ui.output_text("total_ordenes"),
-            showcase=faicons.icon_svg("file-invoice-dollar")
+    ui.card(
+        ui.layout_columns(
+            ui.layout_columns(
+                ui.value_box(
+                    title="Número de Órdenes",
+                    value = ui.output_text("total_ordenes"),
+                    showcase=faicons.icon_svg("file-invoice-dollar")
+                ),
+                ui.value_box(
+                    title="Gasto anual",
+                    value = ui.output_text("total_gasto"),
+                    showcase=faicons.icon_svg("coins")
+                ),
+                col_widths=12
+            ),
+            ui.output_data_frame("table"),
+            col_widths=[5,7]
         ),
-        ui.value_box(
-            title="Gasto anual",
-            value = ui.output_text("total_gasto"),
-            showcase=faicons.icon_svg("coins")
-        ),
-        ui.value_box(
-            title="Otros",
-            value = ui.output_text("otros")
-        )            
+        max_height="50%"
     ),
-    ui.layout_columns(
-        ui.card(
-            ui.card_header("Tabla"),
-            ui.output_data_frame("table")
-        )
+    ui.card(
+        "test"
     ),
+    # ui.layout_columns(
+    #     ui.card(
+    #         ui.card_header("Tabla"),
+    #         ui.output_data_frame("table")
+    #     )
+    # ),
     title="Dashboard",
     fillable=True
 )
