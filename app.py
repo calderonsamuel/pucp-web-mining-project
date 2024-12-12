@@ -59,7 +59,7 @@ app_ui = ui.page_sidebar(
         max_height="50%"
     ),
     ui.card(
-        "test"
+        ui.output_text("otros")
     ),
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
@@ -111,7 +111,9 @@ def server(input, output, session):
     
     @render.text
     def otros():
-        return selected_orden_id()
+        if selected_orden_id() == "":
+            return "Selecciona una orden para ver detalles"
+        return "Detalles aquí"
     
     @reactive.effect
     @reactive.event(input.reset_busqueda)
