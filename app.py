@@ -22,7 +22,7 @@ app_ui = ui.page_sidebar(
         ),
         ui.input_selectize(
             id="tipo",
-            label="Tipo",
+            label="Tipo de orden",
             choices=choices_tipo,
             multiple=True,
             selected=choices_tipo
