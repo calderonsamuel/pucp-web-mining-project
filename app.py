@@ -31,6 +31,10 @@ app_ui = ui.page_sidebar(
             id="busqueda",
             label="Búsqueda",
             placeholder="Buscar por descripción..."
+        ),
+        ui.input_action_button(
+            id="reset_busqueda",
+            label="Limpiar búsqueda",
         )
     ),
     ui.card(
@@ -113,5 +117,14 @@ def server(input, output, session):
     @render.text
     def otros():
         return selected_orden_id()
+    
+    @reactive.effect
+    @reactive.event(input.reset_busqueda)
+    def event_reset_busqueda():
+        ui.update_text(
+            id="busqueda",
+            value=""
+        )
+        return None
 
 app = App(app_ui, server)
