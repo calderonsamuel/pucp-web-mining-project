@@ -85,8 +85,8 @@ app_ui = ui.page_sidebar(
     ui.card(
         ui.layout_columns(
             ui.value_box(
-                title="Rubro asignado",
-                value = ui.output_text("nombre_rubro")
+                title = ui.output_text("nombre_rubro"),
+                value = ui.output_text("palabras_clave")
             ),
             ui.output_data_frame("table_lda"),
             col_widths={
@@ -152,9 +152,11 @@ def server(input, output, session):
         if selected_vector_probs() is None:
             return None
         
-        table = data_filtered().with_columns(
-            compute_distance(data_filtered()["vector_probabilidades"], selected_vector_probs()).alias("distancia")
-        ).sort("distancia")
+        table = ordenes.with_columns(
+            compute_distance(ordenes["vector_probabilidades"], selected_vector_probs()).alias("distancia")
+        ).filter(
+            pl.col("ID") != selected_orden_id()
+        ).sort("distancia").slice(0, 10)
         
         return table
 
@@ -195,11 +197,19 @@ def server(input, output, session):
         nombre = joined.drop_in_place("nombre").to_list()[0]
         return f"{id_rubro} - {nombre}"
     
-    @render.data_frame
-    def table_lda():
+    @render.text
+    def palabras_clave():
         if selected_lda() is None:
             return None
-        return render.DataGrid(selected_lda())
+        
+        palabras = selected_lda().drop_in_place("palabras_clave").to_list()[0]
+        return palabras
+    
+    @render.data_frame
+    def table_lda():
+        if most_similar_orders() is None:
+            return None
+        return render.DataGrid(most_similar_orders())
     
     @reactive.effect
     @reactive.event(input.reset_busqueda)
