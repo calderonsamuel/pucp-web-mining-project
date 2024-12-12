@@ -35,6 +35,7 @@ app_ui = ui.page_sidebar(
         ui.input_action_button(
             id="reset_busqueda",
             label="Limpiar búsqueda",
+            icon=faicons.icon_svg("broom")
         )
     ),
     ui.card(
@@ -60,13 +61,7 @@ app_ui = ui.page_sidebar(
     ui.card(
         "test"
     ),
-    # ui.layout_columns(
-    #     ui.card(
-    #         ui.card_header("Tabla"),
-    #         ui.output_data_frame("table")
-    #     )
-    # ),
-    title="Dashboard",
+    title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
 )
 
