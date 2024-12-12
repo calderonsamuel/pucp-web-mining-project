@@ -85,8 +85,14 @@ app_ui = ui.page_sidebar(
         max_height="50%"
     ),
     ui.layout_columns(
-        sw.output_widget("plot_monto_por_rubro"),
-        sw.output_widget("plot_dispersion_por_rubro"),
+        ui.card(
+            sw.output_widget("plot_monto_por_rubro"),
+            full_screen=True
+        ),
+        ui.card(
+            sw.output_widget("plot_dispersion_por_rubro"),
+            full_screen=True
+        ),
         col_widths=[6, 6]
     ),
     # ui.card(
@@ -261,7 +267,6 @@ def server(input, output, session):
             yaxis_type='log',  # Set y-axis to logarithmic scale
             showlegend=False   # Remove the legend
         )
-
 
         return fig
     
