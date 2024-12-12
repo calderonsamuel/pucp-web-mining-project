@@ -72,7 +72,7 @@ def server(input, output, session):
     @reactive.calc
     def data_filtered():
         filtered_basic = ordenes.filter(
-            pl.col("Anno") == input.year(),
+            pl.col("Anno") == int(input.year()),
             pl.col("Entidad") == input.entidad(),
             pl.col("Tipo").is_in(input.tipo())
         ).drop(
