@@ -54,7 +54,10 @@ app_ui = ui.page_sidebar(
                 col_widths=12
             ),
             ui.output_data_frame("table"),
-            col_widths=[5,7]
+            col_widths={
+                "sm": [5, 7],
+                "lg": [4, 8]
+            }
         ),
         max_height="50%"
     ),
