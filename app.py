@@ -104,8 +104,13 @@ app_ui = ui.page_navbar(
 
     ui.nav_panel(
         "Más",
-        ui.card(
-            ui.output_data_frame("table_lda")
+        ui.layout_sidebar(
+            ui.sidebar(
+                
+            ),
+            ui.card(
+                ui.output_data_frame("table_lda")
+            )
         )
     ),
     
