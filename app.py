@@ -106,7 +106,12 @@ app_ui = ui.page_navbar(
         "Más",
         ui.layout_sidebar(
             ui.sidebar(
-                
+                ui.input_select(
+                    id="lda_rows",
+                    label="Número de similares",
+                    choices=["Todos", "1000", "100", "10"],
+                    selected="10"
+                )
             ),
             ui.card(
                 ui.output_data_frame("table_lda")
@@ -175,7 +180,22 @@ def server(input, output, session):
             compute_distance(ordenes["vector_probabilidades"], selected_vector_probs()).alias("distancia")
         ).filter(
             pl.col("ID") != selected_orden_id()
-        ).sort("distancia").slice(0, 10)
+        ).sort("distancia")
+        
+        if input.lda_rows() != "Todos":
+            table = table.slice(0, int(input.lda_rows()))
+
+        table = table.select(
+            pl.col("ID"),
+            pl.col("Tipo"),
+            pl.col("Numero"),
+            pl.col("Anno"),
+            pl.col("Entidad"),
+            pl.col("Descripcion"),
+            pl.col("Monto"),
+            pl.col("rubro_asignado").alias("Rubro"),
+            pl.col("distancia").round(3).alias("Distancia")
+        )
         
         return table
 

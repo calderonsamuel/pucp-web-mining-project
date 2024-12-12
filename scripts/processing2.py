@@ -94,3 +94,21 @@ compute_distance(v1, v2).to_list() # [2.0, 2.0]
 ordenes_sample.with_columns(
     compute_distance(ordenes_sample["vector_probabilidades"], vector).alias("distancia")
 ).select(pl.col("distancia"))
+
+
+# generate plots
+
+import plotly.express as px
+
+data_sum = ordenes_full.select(
+      pl.col("rubro_asignado"),
+      pl.col("Monto")
+).group_by("rubro_asignado").sum().sort("rubro_asignado")
+
+fig = px.bar(data_sum, x='rubro_asignado', y='Monto')
+fig.show()
+
+ordenes_full.select(
+      pl.col("rubro_asignado"),
+      pl.col("Monto")
+).group_by("rubro_asignado").count().sort("rubro_asignado")
