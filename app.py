@@ -4,6 +4,7 @@ import polars as pl
 import numpy as np
 import faicons
 import plotly.express as px
+import requests
 
 def euclidean_distance(arr1, arr2):
         return np.sqrt(np.sum((np.array(arr1) - np.array(arr2)) ** 2))
@@ -20,6 +21,31 @@ def compute_distance(v1: pl.Series, v2: pl.Series) -> pl.Series:
     distances = [euclidean_distance(a, b) for a, b in zip(v1, v2_extended)]
     
     return pl.Series('distances', distances)
+
+def get_most_similar_from_api(text):
+    # Set the endpoint URL
+    url = "http://34.203.28.148/api/predict-topic"
+
+    # Define the input sentence
+    input_data = {
+        "sentence": text
+    }
+
+    # Send a POST request
+    response = requests.post(url, json=input_data)
+
+    # Check the response
+    if response.status_code == 200:
+        print("Response JSON:")
+        probs = response.json()['topic_probabilities']
+        item_props = [item['probability'] for item in probs]
+        output = pl.Series('probs', [item_props])
+        # print(response.json()['topic_probabilities'])
+    else:
+        print(f"Error: {response.status_code}")
+        output = None
+
+    return output
 
 # ordenes = pl.read_parquet('data/ordenes.parquet')
 ordenes = pl.read_parquet('data/ordenes_full.parquet')
@@ -118,6 +144,26 @@ app_ui = ui.page_navbar(
             )
         )
     ),
+
+    ui.nav_panel(
+        "Todavía más",
+        ui.layout_sidebar(
+            ui.sidebar(
+                ui.input_text_area(
+                    id="servicio_de_usuario",
+                    label="Búsqueda de servicio",
+                    placeholder="Inventa un servicio o compra..."
+                ),
+                ui.input_action_button(
+                    id="call_api",
+                    label="Buscar"
+                )
+            ),
+            ui.card(
+                ui.output_data_frame("table_most_smilar_from_api")
+            )
+        )
+    ),
     
     title="Explorador de Órdenes de Servicio/Compra",
     fillable=True
@@ -198,6 +244,7 @@ def server(input, output, session):
         )
         
         return table
+    
 
     @render.data_frame
     def table():
@@ -310,6 +357,40 @@ def server(input, output, session):
             value=""
         )
         return None
+    
+    @render.data_frame
+    @reactive.event(input.call_api)
+    def table_most_smilar_from_api():
+        if input.servicio_de_usuario() == "":
+            return None
+        
+        response = get_most_similar_from_api(input.servicio_de_usuario())
+        print("Response")
+        print(response)
+
+        table = ordenes.with_columns(
+            compute_distance(ordenes["vector_probabilidades"], response).alias("distancia")
+        ).sort("distancia").slice(0, 10)
+
+        print("Sliced")
+        print(table)
+        
+        table = table.select(
+            pl.col("ID"),
+            pl.col("Tipo"),
+            pl.col("Numero"),
+            pl.col("Anno"),
+            pl.col("Entidad"),
+            pl.col("Descripcion"),
+            pl.col("Monto"),
+            pl.col("rubro_asignado").alias("Rubro"),
+            pl.col("distancia").round(3).alias("Distancia")
+        )
+
+        print("Selected")
+        print(table)
+        
+        return render.DataGrid(table)
     
     # @reactive.effect
     # @reactive.event(selected_vector_probs)
